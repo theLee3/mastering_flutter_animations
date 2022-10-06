@@ -16,6 +16,24 @@ class _FlickerPageState extends State<FlickerPage>
 
   var lightIsOn = false;
 
+  late final controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  );
+
+  late final animation = ColorTween(begin: offColor, end: onColor).animate(
+    CurvedAnimation(
+      parent: controller,
+      curve: Curves.linear,
+    ),
+  );
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,14 +41,24 @@ class _FlickerPageState extends State<FlickerPage>
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          setState(() => lightIsOn = !lightIsOn);
+          if (lightIsOn) {
+            controller.reverse(from: controller.value);
+          } else {
+            controller.forward(from: controller.value);
+          }
+          lightIsOn = !lightIsOn;
         },
         child: SizedBox.expand(
           child: Center(
-            child: Icon(
-              Icons.lightbulb,
-              color: lightIsOn ? onColor : offColor,
-              size: 256,
+            child: AnimatedBuilder(
+              animation: animation,
+              builder: (context, _) {
+                return Icon(
+                  Icons.lightbulb,
+                  color: animation.value,
+                  size: 256,
+                );
+              },
             ),
           ),
         ),

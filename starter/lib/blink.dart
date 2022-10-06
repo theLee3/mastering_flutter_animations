@@ -16,8 +16,37 @@ class _BlinkPageState extends State<BlinkPage>
   // using Color.transparent, which is actually transparent black.
   final offColor = const Color.fromARGB(0, 255, 231, 15);
 
+  late final controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2000),
+  );
+
+  final animations = <Animation>[];
   final numberOfLights = 10;
-  var lightsAreOn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final interval = 1 / numberOfLights;
+    for (var i = 0; i < numberOfLights; i++) {
+      final begin = interval * i;
+      final end = interval * (i + 1);
+      animations.add(
+        ColorTween(begin: offColor, end: onColor).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(begin, end),
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +58,33 @@ class _BlinkPageState extends State<BlinkPage>
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          setState(() => lightsAreOn = !lightsAreOn);
+          if (controller.isAnimating) {
+            controller.stop();
+          } else {
+            controller.repeat();
+          }
         },
         child: SizedBox.expand(
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var i = 0; i < numberOfLights; i++)
-                  Icon(Icons.lightbulb,
-                      color: lightsAreOn ? onColor : offColor,
-                      size: lightbulbSize)
-              ],
+              children: animations
+                  .map(
+                    (animation) => Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, _) {
+                          return Icon(
+                            Icons.lightbulb,
+                            color: animation.value,
+                            size: lightbulbSize,
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ),

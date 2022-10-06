@@ -31,7 +31,7 @@ class _BlinkPageState extends State<BlinkPage>
 
   late final controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1000),
+    duration: const Duration(milliseconds: 2000),
   );
 
   final animations = <Animation>[];
@@ -40,15 +40,18 @@ class _BlinkPageState extends State<BlinkPage>
   @override
   void initState() {
     super.initState();
-    final tween = LightTween(off: offColor, on: onColor);
     final interval = 1 / numberOfLights;
     for (var i = 0; i < numberOfLights; i++) {
       final begin = interval * i;
       final end = interval * (i + 1);
-      animations.add(tween.animate(CurvedAnimation(
-        parent: controller,
-        curve: Interval(begin, end),
-      )));
+      animations.add(
+        LightTween(off: offColor, on: onColor).animate(
+          CurvedAnimation(
+            parent: controller,
+            curve: Interval(begin, end),
+          ),
+        ),
+      );
     }
   }
 
@@ -79,18 +82,21 @@ class _BlinkPageState extends State<BlinkPage>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: animations
-                  .map((animation) => Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: AnimatedBuilder(
-                            animation: animation,
-                            builder: (context, _) {
-                              return Icon(
-                                Icons.lightbulb,
-                                color: animation.value,
-                                size: lightbulbSize,
-                              );
-                            }),
-                      ))
+                  .map(
+                    (animation) => Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, _) {
+                          return Icon(
+                            Icons.lightbulb,
+                            color: animation.value,
+                            size: lightbulbSize,
+                          );
+                        },
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ),
